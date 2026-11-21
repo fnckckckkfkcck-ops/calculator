@@ -1,0 +1,41 @@
+name: Build APK
+
+on:
+  push:
+    paths: ["TikTokDownloader/**", ".github/workflows/build-apk.yml"]
+    branches: [main]
+  pull_request:
+    paths: ["TikTokDownloader/**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Download Android build tools
+        run: |
+          mkdir -p /tmp/atools
+          curl -fsSL -o /tmp/atools/bt.zip https://dl.google.com/android/repository/build-tools_r34-linux.zip
+          curl -fsSL -o /tmp/atools/plat.zip https://dl.google.com/android/repository/platform-34-ext8_r01.zip
+          unzip -q /tmp/atools/bt.zip -d /tmp/atools
+          unzip -q /tmp/atools/plat.zip -d /tmp/atools
+          echo "BUILD_TOOLS_DIR=$(find /tmp/atools -maxdepth 2 -name aapt2 | head -1 | xargs dirname)" >> "$GITHUB_ENV"
+          echo "PLATFORM_JAR=/tmp/atools/android-34/android.jar" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        run: |
+          chmod +x TikTokDownloader/build.sh
+          OUT_APK="$PWD/TikTokDownloader/dist/TikSaver.apk" TikTokDownloader/build.sh
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TikSaver-APK
+          path: TikTokDownloader/dist/TikSaver.apk

@@ -1,0 +1,7 @@
+TikTokDownloader/dist/*.idsig
+TikTokDownloader/.android-tools/
+_build/
+*.iml
+.gradle/
+build/
+local.properties
